@@ -29,6 +29,7 @@ th{font-family:var(--display);font-size:.8rem;text-transform:uppercase;letter-sp
 td.t{font-weight:600}
 td.loc,td.cat{font-family:var(--display);font-size:.88rem;color:var(--muted);white-space:nowrap}
 .flag{display:inline-block;font-family:var(--display);font-size:.72rem;background:var(--flagbg);color:var(--flag);border-radius:4px;padding:0 5px;margin-left:6px;font-weight:500}
+.isbn{display:block;font-weight:400;font-size:.8rem;color:var(--muted);font-family:var(--display)}
 .note{display:block;font-weight:400;font-size:.85rem;color:var(--flag)}
 .empty{color:var(--muted);padding:24px 4px}
 footer{margin-top:28px;color:var(--muted);font-size:.85rem;max-width:65ch}
@@ -183,6 +184,7 @@ const B=[
 ["Cram101 Textbook Outlines to Accompany: Developmental Biology, Gilbert, 7th Edition", "Cram101 / AIPI", "", "Basic Sciences", ""],
 ["Molecular Cell Biology", "Lodish, Berk, Zipursky, Matsudaira, Baltimore, Darnell", "4th", "Basic Sciences", ""],
 ["The Cell: A Molecular Approach", "Cooper", "3rd", "Basic Sciences", ""],
+["Frameworks for Internal Medicine", "Andre Mansoor", "1st", "General Medicine", "", "978-1-4963-5930-8"],
 ["The New Yorker Cartoon Album 1975-1985","","","Humor & Art",""],
 ["The International Encyclopedia of Science and Technology","Oxford","","Reference",""],
 ["Oh, the Places You'll Go!","Dr. Seuss","","Fiction",""],
@@ -215,12 +217,14 @@ function render(){
  const STOP=new Set(["the","a","an","of","and","all","to","in","for","on","by","with","dr","md","edition","ed","book"]);
  const qw=[...new Set(norm(q).split(" ").filter(w=>w&&!STOP.has(w)))];
  const need=Math.max(1,Math.ceil(qw.length*0.6));
- let r=B.filter(b=>(!c||b[3]===c)&&(!chk||b[4])).map(b=>{const h=" "+norm(b[0]+" "+b[1]+" "+b[2]+" "+b[3])+" ";const hw=h.trim().split(" ");const sc=qw.filter(w=>hw.some(x=>x===w||(w.length>3&&x.startsWith(w)))).length;return [b,sc]}).filter(([b,sc])=>!q.trim()||!qw.length||sc>=need);
+ let r=B.filter(b=>(!c||b[3]===c)&&(!chk||b[4])).map(b=>{const h=" "+norm(b[0]+" "+b[1]+" "+b[2]+" "+b[3]+" "+(b[5]||"").replace(/-/g,""))+" ";const hw=h.trim().split(" ");const sc=qw.filter(w=>hw.some(x=>x===w||(w.length>3&&x.startsWith(w)))).length;return [b,sc]}).filter(([b,sc])=>!q.trim()||!qw.length||sc>=need);
+ const qd=q.replace(/[^0-9xX]/g,"");
+ if(qd.length>=10&&/^[0-9xX\s-]+$/.test(q.trim())){const isb=b=>(b[5]||"").replace(/[^0-9xX]/g,"");r=B.filter(b=>{const d=isb(b);return d&&(d===qd||d.slice(3,12)===qd.slice(0,9))}).map(b=>[b,1]);}
  const ranked=!!(q.trim()&&qw.length);
  r=r.sort((x,y)=>ranked?y[1]-x[1]:0).map(x=>x[0]);
  const k={title:b=>b[0].replace(/^(The|A) /,""),author:b=>b[1]||"~",cat:b=>b[3]+b[0]}[so];
  if(!ranked) r.sort((a,b)=>k(a).localeCompare(k(b)));
- $("list").innerHTML=r.length?r.map(b=>`<tr><td class="t">${esc(b[0])}${b[4]?`<span class="note">⚑ ${esc(b[4])}</span>`:""}</td><td>${esc(b[1])}</td><td>${esc(b[2])}</td><td class="cat">${esc(b[3])}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No matches.</td></tr>`;
+ $("list").innerHTML=r.length?r.map(b=>`<tr><td class="t">${esc(b[0])}${b[5]?`<span class="isbn">ISBN ${esc(b[5])}</span>`:""}${b[4]?`<span class="note">⚑ ${esc(b[4])}</span>`:""}</td><td>${esc(b[1])}</td><td>${esc(b[2])}</td><td class="cat">${esc(b[3])}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No matches.</td></tr>`;
 }
 ["q","cat","sort"].forEach(id=>$(id).addEventListener("input",render));
 $("chk").onclick=e=>{e.target.setAttribute("aria-pressed",e.target.getAttribute("aria-pressed")!=="true");render()};
