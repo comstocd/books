@@ -208,9 +208,12 @@ const cats=[...new Set(B.map(b=>b[3]))].sort();
 cats.forEach(c=>$("cat").add(new Option(c,c)));
 $("stats").innerHTML=`<span><b>${B.length}</b> items</span><span><b>${cats.length}</b> categories</span><span><b>${B.filter(b=>b[4]).length}</b> flagged</span>`;
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ORD={first:"1st",second:"2nd",third:"3rd",fourth:"4th",fifth:"5th",sixth:"6th",seventh:"7th",eighth:"8th",ninth:"9th",tenth:"10th",eleventh:"11th",twelfth:"12th",seventeenth:"17th",twentieth:"20th","twenty-first":"21st"};
+const norm=t=>t.toLowerCase().replace(/[‘’']/g,"").replace(/twenty-first/g,"21st").replace(/[^a-z0-9]+/g," ").trim().split(" ").map(w=>ORD[w]||w).join(" ");
 function render(){
  const q=$("q").value.toLowerCase().trim(),c=$("cat").value,chk=$("chk").getAttribute("aria-pressed")==="true",so=$("sort").value;
- let r=B.filter(b=>(!c||b[3]===c)&&(!chk||b[4])&&(!q||(b[0]+" "+b[1]+" "+b[3]).toLowerCase().includes(q)));
+ const qw=norm(q).split(" ").filter(w=>w&&w!=="edition"&&w!=="ed");
+ let r=B.filter(b=>(!c||b[3]===c)&&(!chk||b[4])&&(!qw.length||(h=>qw.every(w=>h.includes(w)))(" "+norm(b[0]+" "+b[1]+" "+b[2]+" "+b[3])+" ")));
  const k={title:b=>b[0].replace(/^(The|A) /,""),author:b=>b[1]||"~",cat:b=>b[3]+b[0]}[so];
  r.sort((a,b)=>k(a).localeCompare(k(b)));
  $("list").innerHTML=r.length?r.map(b=>`<tr><td class="t">${esc(b[0])}${b[4]?`<span class="note">⚑ ${esc(b[4])}</span>`:""}</td><td>${esc(b[1])}</td><td>${esc(b[2])}</td><td class="cat">${esc(b[3])}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No matches.</td></tr>`;
