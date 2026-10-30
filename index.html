@@ -36,18 +36,17 @@ footer{margin-top:28px;color:var(--muted);font-size:.85rem;max-width:65ch}
 </style></head><body>
 <div class="wrap">
 <h1>Book Collection</h1>
-<p class="sub">Every book, and which shelf it's on. Built from shelf photos; yellow flags mark spines I could not read with confidence.</p>
+<p class="sub">Built from shelf photos. Yellow flags mark entries that need confirming against the book.</p>
 <div class="stats" id="stats"></div>
 <div class="bar">
 <input id="q" type="search" placeholder="Search title, author, category…" aria-label="Search">
 <div class="row">
 <label class="sl" for="cat">Category</label><select id="cat"><option value="">All</option></select>
-<label class="sl" for="sh">Shelf</label><select id="sh"><option value="">All</option></select>
-<label class="sl" for="sort">Sort</label><select id="sort"><option value="loc">Shelf order</option><option value="title">Title</option><option value="author">Author</option><option value="cat">Category</option></select>
+<label class="sl" for="sort">Sort</label><select id="sort"><option value="title">Title</option><option value="author">Author</option><option value="cat">Category</option></select>
 <button type="button" class="toggle" id="chk" aria-pressed="false">Needs checking</button>
 </div></div>
-<table><thead><tr><th>Title</th><th>Author / Editor</th><th>Ed.</th><th>Category</th><th>Location</th></tr></thead><tbody id="list"></tbody></table>
-<footer>Location = shelf photo, then position counted left to right. A1/A2 = first photo (top/bottom shelf); B = cardiology/surgery shelf; C = exercise-science/Shakespeare shelf; D = travel/business shelf; E = basic sciences/literature shelf.</footer>
+<table><thead><tr><th>Title</th><th>Author / Editor</th><th>Ed.</th><th>Category</th></tr></thead><tbody id="list"></tbody></table>
+
 </div>
 <script>
 // [shelf, pos, title, author, edition, category, note-if-uncertain]
@@ -79,7 +78,7 @@ const B=[
 ["A1",26,"The Best Medicine","Mike Magee & Michael D'Antonio","","Science & Medicine (general)",""],
 ["A1",27,"Better: A Surgeon's Notes on Performance","Atul Gawande","","Science & Medicine (general)",""],
 ["A1",28,"Master the Wards: Surgery Flashcards","Sonpal & Fischer","","Study Aids",""],
-["A1",29,"Rubin's Pathology Flash Cards (boxed, on top of shelf)","Rubin","","Study Aids",""],
+["A1",29,"Rubin's Pathology Flash Cards","Rubin","","Study Aids",""],
 ["A2",1,"Tintinalli's Emergency Medicine","Tintinalli et al.","8th","Emergency Medicine",""],
 ["A2",3,"Netter's Concise Radiologic Anatomy","Weber, Vilensky, Carmichael, Lee","2nd","Radiology",""],
 ["A2",4,"Essentials of Radiology","Mettler","","Radiology",""],
@@ -207,17 +206,16 @@ const B=[
 const $=id=>document.getElementById(id);
 const cats=[...new Set(B.map(b=>b[5]))].sort(), shelves=[...new Set(B.map(b=>b[0]))];
 cats.forEach(c=>$("cat").add(new Option(c,c)));
-shelves.forEach(s=>$("sh").add(new Option(s==="?"?"Not photographed":"Shelf "+s,s)));
-$("stats").innerHTML=`<span><b>${B.length}</b> items</span><span><b>${shelves.length}</b> shelves</span><span><b>${cats.length}</b> categories</span><span><b>${B.filter(b=>b[6]).length}</b> flagged</span>`;
+$("stats").innerHTML=`<span><b>${B.length}</b> items</span><span><b>${cats.length}</b> categories</span><span><b>${B.filter(b=>b[6]).length}</b> flagged</span>`;
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function render(){
- const q=$("q").value.toLowerCase().trim(),c=$("cat").value,s=$("sh").value,chk=$("chk").getAttribute("aria-pressed")==="true",so=$("sort").value;
- let r=B.filter(b=>(!c||b[5]===c)&&(!s||b[0]===s)&&(!chk||b[6])&&(!q||(b[2]+" "+b[3]+" "+b[5]).toLowerCase().includes(q)));
+ const q=$("q").value.toLowerCase().trim(),c=$("cat").value,chk=$("chk").getAttribute("aria-pressed")==="true",so=$("sort").value;
+ let r=B.filter(b=>(!c||b[5]===c)&&(!chk||b[6])&&(!q||(b[2]+" "+b[3]+" "+b[5]).toLowerCase().includes(q)));
  const k={title:b=>b[2].replace(/^(The|A) /,""),author:b=>b[3]||"~",cat:b=>b[5]+b[2]}[so];
- r.sort(k?(a,b)=>k(a).localeCompare(k(b)):(a,b)=>a[0].localeCompare(b[0])||a[1]-b[1]);
- $("list").innerHTML=r.length?r.map(b=>`<tr><td class="t">${esc(b[2])}${b[6]?`<span class="note">⚑ ${esc(b[6])}</span>`:""}</td><td>${esc(b[3])}</td><td>${esc(b[4])}</td><td class="cat">${esc(b[5])}</td><td class="loc">${b[0]==="?"?"—":b[0]+" · #"+b[1]}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">No matches.</td></tr>`;
+ r.sort((a,b)=>k(a).localeCompare(k(b)));
+ $("list").innerHTML=r.length?r.map(b=>`<tr><td class="t">${esc(b[2])}${b[6]?`<span class="note">⚑ ${esc(b[6])}</span>`:""}</td><td>${esc(b[3])}</td><td>${esc(b[4])}</td><td class="cat">${esc(b[5])}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No matches.</td></tr>`;
 }
-["q","cat","sh","sort"].forEach(id=>$(id).addEventListener("input",render));
+["q","cat","sort"].forEach(id=>$(id).addEventListener("input",render));
 $("chk").onclick=e=>{e.target.setAttribute("aria-pressed",e.target.getAttribute("aria-pressed")!=="true");render()};
 render();
 </script>

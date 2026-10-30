@@ -1,6 +1,6 @@
 # Book Collection
 
-Searchable catalogue of David Comstock's books, built from shelf photographs: title, author or editor, edition, category, and the shelf photo each book came from.
+Searchable catalogue of David Comstock's books, built from shelf photographs: title, author or editor, edition, category.
 
 Live site: https://comstocd.github.io/books/
 
